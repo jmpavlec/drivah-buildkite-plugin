@@ -38,7 +38,7 @@ container_registry_login() {
     exit 1
   fi
 
-  echo "$DOCKER_PASSWORD" | buildah login -u docker_login_username --password-stdin docker.elastic.co
+  echo "$DOCKER_PASSWORD" | buildah login -u ${docker_login_username} --password-stdin docker.elastic.co
 }
 
 build_image() {
