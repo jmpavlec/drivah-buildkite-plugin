@@ -64,8 +64,8 @@ steps:
   - plugins:
     - jmpavlec/drivah#dev-branch:
         dockerfile_path: cloud-ui
-          docker_login_username: cloud-ci
-          vault_secret_path: secret/ci/elastic-cloud/docker-registry
+        docker_login_username: cloud-ci
+        vault_secret_path: secret/ci/elastic-cloud/docker-registry
     env:
       BUILDKITE_PLUGINS_ALWAYS_CLONE_FRESH: "true"
     agents:
@@ -73,5 +73,6 @@ steps:
       ephemeralStorage: 10G
       memory: 4G
 ```
+
 ## Releasing the plugin
 TODO Github Releases with a tag...

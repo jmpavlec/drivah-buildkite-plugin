@@ -3,9 +3,9 @@ description: Buildkite plugin to wrap around drivah for building, pushing, and t
 #TODO change to elastic
 author: https://github.com/jmpavlec
 requirements:
-  - docker
   - vault
   - drivah
+  - buildah
 configuration:
   properties:
     dockerfile_path:
@@ -18,8 +18,9 @@ configuration:
       type: string
       description: The vault path to get the secrets for the docker registry login
     pre_build_commands:
-      type: ['string', 'array']
+      type: [ string, array ]
       description: Commands to execute before the build takes places
+      minimum: 1
     build_only:
       type: boolean
       description: Only build the docker image, don't push it
