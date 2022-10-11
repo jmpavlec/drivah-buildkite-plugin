@@ -38,6 +38,7 @@ container_registry_login() {
     exit 1
   fi
 
+  echo "logging in with user ${docker_login_username}"
   echo "$DOCKER_PASSWORD" | buildah login -u ${docker_login_username} --password-stdin docker.elastic.co
 }
 
@@ -102,7 +103,7 @@ buildah --version
 
 #Necessary to login as some Dockerfile's base images are in Elastic's repos
 echo "--- logging in in via credentials found in $vault_secret_path"
-container_registry_login $vault_secret_path docker_login_username
+container_registry_login $vault_secret_path $docker_login_username
 
 build_image $dockerfile_path $build_only $include_sub_directories
 
