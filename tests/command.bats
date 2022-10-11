@@ -6,7 +6,6 @@ load '/usr/local/lib/bats/load.bash'
  export CD_STUB_DEBUG=/dev/tty
  export DRIVAH_STUB_DEBUG=/dev/tty
  export BUILDKITE_COMMIT=aaabbbccceee
- export BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS=""
 
 @test "should fail when required properties are not included" {
   export BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH=""

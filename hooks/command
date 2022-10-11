@@ -100,7 +100,7 @@ run(){
   local drivah_debug=${BUILDKITE_PLUGIN_DRIVAH_DRIVAH_DEBUG:-false}
 
 
-  if [[ -n "${BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS}" ]]; then
+  if [[ -n "${BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS-}" ]]; then
     echo "+++ executing prebuild commands:"
     $BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS
   fi
@@ -113,6 +113,4 @@ run(){
 }
 
 run
-
-
 
