@@ -66,10 +66,10 @@ load '/usr/local/lib/bats/load.bash'
   stub cd "tests/fakedir"
 
   stub buildah \
+    "--version" \
     "login -u cloudci --password-stdin docker.elastic.co"
 
   stub drivah \
-    "--version" \
     "build -t myAppName:aaabbbc . --build-arg my-arg=custom-arg"
 
   run bash -c "$PWD/hooks/command"

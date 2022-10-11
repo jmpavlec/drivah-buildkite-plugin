@@ -98,7 +98,7 @@ export BUILDAH_ISOLATION=chroot
 # is that needed for DRIVAH?
 #export DRIVAH_ISOLATION=chroot
 
-drivah --version
+buildah --version
 
 #Necessary to login as some Dockerfile's base images are in Elastic's repos
 echo "--- logging in in via credentials found in $vault_secret_path"
