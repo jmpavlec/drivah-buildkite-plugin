@@ -17,10 +17,6 @@ configuration:
     vault_secret_path:
       type: string
       description: The vault path to get the secrets for the docker registry login
-    pre_build_commands:
-      type: [ string, array ]
-      description: Commands to execute before the build takes places
-      minimum: 1
     build_only:
       type: boolean
       description: Only build the docker image, don't push it

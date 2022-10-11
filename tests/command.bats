@@ -66,7 +66,6 @@ load '/usr/local/lib/bats/load.bash'
   export BUILDKITE_PLUGIN_DRIVAH_BUILD_ONLY="true"
   export BUILDKITE_PLUGIN_DRIVAH_INCLUDE_SUB_DIRECTORIES="true"
   export VAULT_TOKEN=abc123
-  export BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS="echo testprecommand"
 
   stub vault \
     "read -field password vault-path : echo TESTING"
@@ -86,7 +85,6 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "logging in in via credentials found in vault-path"
   assert_output --partial "Building image in directory tests/fakedir"
   assert_output --partial "Building image with params --changed-since=HEAD^"
-  assert_output --partial "testprecommand"
 
   #unstub cd
   #unstub buildah

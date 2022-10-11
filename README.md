@@ -12,9 +12,6 @@ steps:
           dockerfile_path: cloud-ui
           docker_login_username: cloud-ci
           vault_secret_path: secret/ci/elastic-cloud/docker-registry
-          pre_build_commands:
-            - "echo testing"
-            - "echo testing2"
     # Specifying the agent isn't strictly necessary, but you will need an agent image with drivah installed
     agents:
       image: docker.elastic.co/ci-agent-images/drivah:0.16.0

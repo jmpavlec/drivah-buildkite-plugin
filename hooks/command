@@ -118,13 +118,6 @@ run(){
   local include_sub_directories=${BUILDKITE_PLUGIN_DRIVAH_INCLUDE_SUB_DIRECTORIES:-false}
   local drivah_debug=${BUILDKITE_PLUGIN_DRIVAH_DRIVAH_DEBUG:-false}
 
-  echo "prebuild commands ${BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS-}"
-
-  if [[ -n "${BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS-}" ]]; then
-    echo "+++ executing prebuild commands:"
-    $BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS
-  fi
-
   #Necessary to login as some Dockerfile's base images are in Elastic's repos
   container_registry_login $vault_secret_path $docker_login_username
 
