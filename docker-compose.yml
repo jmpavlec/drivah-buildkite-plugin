@@ -1,0 +1,11 @@
+services:
+  lint:
+    image: buildkite/plugin-linter
+    #TODO change to elastic
+    command: ['--id', 'jmpavlec/drivah']
+    volumes:
+      - ".:/plugin:ro"
+  tests:
+    image: buildkite/plugin-tester:v2.0.0
+    volumes:
+      - ".:/plugin:ro"

@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+retry() {
+  local retries=$1; shift
+  local delay=$1; shift
+  local attempts=1
+
+  until "$@"; do
+    retry_exit_status=$?
+    echo "Exited with $retry_exit_status" >&2
+    if (( retries == "0" )); then
+      return $retry_exit_status
+    elif (( attempts == retries )); then
+      echo "Failed $attempts retries" >&2
+      return $retry_exit_status
+    else
+      echo "Retrying $((retries - attempts)) more times..." >&2
+      attempts=$((attempts + 1))
+      sleep "$delay"
+    fi
+  done
+}
+
+container_registry_login() {
+  local registryPath="${1}"
+  local docker_login_username="${2}"
+  if [ -z "$VAULT_TOKEN" ]; then
+    echo "No valid VAULT_TOKEN specified. Exiting.."
+    exit 1
+  fi
+
+  # Login to docker registry
+  DOCKER_PASSWORD=$(retry 5 5 vault read -field password ${registryPath})
+  if [ -z "$DOCKER_PASSWORD" ]; then
+    echo "No valid DOCKER_PASSWORD retrieved from Vault. Exiting..."
+    exit 1
+  fi
+
+  echo "$DOCKER_PASSWORD" | buildah login -u docker_login_username --password-stdin docker.elastic.co
+}
+
+build_image() {
+  local dockerfile_path=${1}
+  local build_only=${2}
+  local include_sub_directories=${3}
+  echo "--- Building image in directory $dockerfile_path"
+  cd $dockerfile_path
+
+  local drivah_params="--changed-since=HEAD^ "
+
+  if [ "$build_only" = false ]; then
+    drivah_params+="--push "
+  fi
+
+  if [ "$include_sub_directories" = false ]; then
+    drivah_params+="--no-subdirs "
+  fi
+
+  echo "Building image with params ${drivah_params}"
+  drivah build ${drivah_params} .
+}
+
+
+validate_required_properties(){
+  local valid=1
+  if [[ -z ${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH:-} ]]; then
+    echo "'dockerfile_path' property is required"
+    valid=0
+  fi
+  if [[ -z ${BUILDKITE_PLUGIN_DRIVAH_DOCKER_LOGIN_USERNAME:-} ]]; then
+    echo "'docker_login_username' property is required"
+    valid=0
+  fi
+  if [[ -z ${BUILDKITE_PLUGIN_DRIVAH_VAULT_SECRET_PATH:-} ]]; then
+    echo "'vault_secret_path' property is required"
+    valid=0
+  fi
+  if [ "$valid" -eq "0" ]; then
+    exit 1
+  fi
+}
+
+echo '--- Reading plugin parameters'
+validate_required_properties
+
+dockerfile_path=${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH}
+vault_secret_path=${BUILDKITE_PLUGIN_DRIVAH_VAULT_SECRET_PATH}
+docker_login_username=${BUILDKITE_PLUGIN_DRIVAH_DOCKER_LOGIN_USERNAME}
+tag=${BUILDKITE_PLUGIN_DRIVAH_TAG:-${BUILDKITE_COMMIT:0:7}}
+build_only=${BUILDKITE_PLUGIN_DRIVAH_BUILD_ONLY:-false}
+include_sub_directories=${BUILDKITE_PLUGIN_DRIVAH_INCLUDE_SUB_DIRECTORIES:-false}
+
+# Work-around for Buildah rootless issue
+export STORAGE_DRIVER=vfs
+export BUILDAH_ISOLATION=chroot
+# is that needed for DRIVAH?
+#export DRIVAH_ISOLATION=chroot
+
+drivah --version
+
+#Necessary to login as some Dockerfile's base images are in Elastic's repos
+echo "--- logging in in via credentials found in $vault_secret_path"
+container_registry_login $vault_secret_path docker_login_username
+
+build_image $dockerfile_path $build_only $include_sub_directories
+

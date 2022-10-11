@@ -1,0 +1,30 @@
+name: Drivah
+description: Buildkite plugin to wrap around drivah for building, pushing, and tagging docker images.
+#TODO change to elastic
+author: https://github.com/jmpavlec
+requirements:
+  - docker
+  - vault
+  - drivah
+configuration:
+  properties:
+    dockerfile_path:
+      type: string
+      description: The full path from the base of the repo to the directory containing the Dockerfile
+    docker_login_username:
+      type: string
+      description: The username to log into docker with
+    vault_secret_path:
+      type: string
+      description: The vault path to get the secrets for the docker registry login
+    pre_build_steps:
+      type: ['string', 'array']
+      description: Commands to execute before the build takes places
+    build_only:
+      type: boolean
+      description: Only build the docker image, don't push it
+    include_sub_directories:
+      type: boolean
+      default: false
+      description: Build all combinations of Dockerfile and drivah.toml from the `dockerfile_path` dir and below.
+  required: ['dockerfile_path', 'docker_login_username', 'vault_secret_path']
