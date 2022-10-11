@@ -26,6 +26,7 @@ retry() {
 container_registry_login() {
   local registryPath="${1}"
   local docker_login_username="${2}"
+  echo "--- logging in in via credentials found in $registryPath"
   if [ -z "$VAULT_TOKEN" ]; then
     echo "No valid VAULT_TOKEN specified. Exiting.."
     exit 1
@@ -70,6 +71,7 @@ build_image() {
 
 
 validate_required_properties() {
+  echo '--- Reading plugin parameters'
   local valid=1
   if [[ -z ${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH:-} ]]; then
     echo "'dockerfile_path' property is required"
@@ -88,8 +90,25 @@ validate_required_properties() {
   fi
 }
 
+ensure_drivah_and_buildah_exist() {
+  local valid=1
+  if ! command -v drivah &> /dev/null
+  then
+      echo "drivah could not be found. Does your agent have it installed?"
+      valid=0
+  fi
+  if ! command -v buildah &> /dev/null
+  then
+      echo "buildah could not be found.  Does your agent have it installed?"
+      valid=0
+  fi
+  if [ "$valid" -eq "0" ]; then
+     exit 1
+  fi
+}
+
 run(){
-  echo '--- Reading plugin parameters'
+  ensure_drivah_and_buildah_exist
   validate_required_properties
 
   local dockerfile_path=${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH}
@@ -106,7 +125,6 @@ run(){
   fi
 
   #Necessary to login as some Dockerfile's base images are in Elastic's repos
-  echo "--- logging in in via credentials found in $vault_secret_path"
   container_registry_login $vault_secret_path $docker_login_username
 
   build_image $dockerfile_path $build_only $include_sub_directories $drivah_debug

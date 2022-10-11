@@ -7,10 +7,17 @@ load '/usr/local/lib/bats/load.bash'
  export DRIVAH_STUB_DEBUG=/dev/tty
  export BUILDKITE_COMMIT=aaabbbccceee
 
+@test "should fail when drivah and buildah are not present" {
+  run bash -c "$PWD/hooks/command"
+
+  assert_failure
+  assert_output --partial "drivah could not be found"
+  assert_output --partial "buildah could not be found"
+}
+
 @test "should fail when required properties are not included" {
-  export BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH=""
-  export BUILDKITE_PLUGIN_DRIVAH_VAULT_SECRET_PATH=""
-  export BUILDKITE_PLUGIN_DRIVAH_DOCKER_LOGIN_USERNAME=""
+  stub buildah
+  stub drivah
 
   run "$PWD/hooks/command"
 
@@ -20,7 +27,6 @@ load '/usr/local/lib/bats/load.bash'
   assert_output --partial "'vault_secret_path' property is required"
 }
 
-#WIP test, stubs not working
 @test "should attempt to build image with required properties and defaults" {
   export BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH="tests/fakedir"
   export BUILDKITE_PLUGIN_DRIVAH_DOCKER_LOGIN_USERNAME="testuser"
