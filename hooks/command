@@ -46,6 +46,7 @@ build_image() {
   local dockerfile_path=${1}
   local build_only=${2}
   local include_sub_directories=${3}
+  local drivah_debug=${4}
   echo "--- Building image in directory $dockerfile_path"
   cd $dockerfile_path
 
@@ -59,12 +60,16 @@ build_image() {
     drivah_params+="--no-subdirs "
   fi
 
+  if [ "$drivah_debug" = true ]; then
+    export BUILDAH_FLAGS="--log-level=debug"
+  fi
+
   echo "Building image with params ${drivah_params}"
   drivah build ${drivah_params} .
 }
 
 
-validate_required_properties(){
+validate_required_properties() {
   local valid=1
   if [[ -z ${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH:-} ]]; then
     echo "'dockerfile_path' property is required"
@@ -83,27 +88,31 @@ validate_required_properties(){
   fi
 }
 
-echo '--- Reading plugin parameters'
-validate_required_properties
+run(){
+  echo '--- Reading plugin parameters'
+  validate_required_properties
 
-dockerfile_path=${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH}
-vault_secret_path=${BUILDKITE_PLUGIN_DRIVAH_VAULT_SECRET_PATH}
-docker_login_username=${BUILDKITE_PLUGIN_DRIVAH_DOCKER_LOGIN_USERNAME}
-tag=${BUILDKITE_PLUGIN_DRIVAH_TAG:-${BUILDKITE_COMMIT:0:7}}
-build_only=${BUILDKITE_PLUGIN_DRIVAH_BUILD_ONLY:-false}
-include_sub_directories=${BUILDKITE_PLUGIN_DRIVAH_INCLUDE_SUB_DIRECTORIES:-false}
+  local dockerfile_path=${BUILDKITE_PLUGIN_DRIVAH_DOCKERFILE_PATH}
+  local vault_secret_path=${BUILDKITE_PLUGIN_DRIVAH_VAULT_SECRET_PATH}
+  local docker_login_username=${BUILDKITE_PLUGIN_DRIVAH_DOCKER_LOGIN_USERNAME}
+  local build_only=${BUILDKITE_PLUGIN_DRIVAH_BUILD_ONLY:-false}
+  local include_sub_directories=${BUILDKITE_PLUGIN_DRIVAH_INCLUDE_SUB_DIRECTORIES:-false}
+  local drivah_debug=${BUILDKITE_PLUGIN_DRIVAH_DRIVAH_DEBUG:-false}
 
-# Work-around for Buildah rootless issue
-export STORAGE_DRIVER=vfs
-export BUILDAH_ISOLATION=chroot
-# is that needed for DRIVAH?
-#export DRIVAH_ISOLATION=chroot
 
-buildah --version
+  if [[ -n "${BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS}" ]]; then
+    echo "+++ executing prebuild commands:"
+    $BUILDKITE_PLUGIN_DRIVAH_PRE_BUILD_COMMANDS
+  fi
 
-#Necessary to login as some Dockerfile's base images are in Elastic's repos
-echo "--- logging in in via credentials found in $vault_secret_path"
-container_registry_login $vault_secret_path $docker_login_username
+  #Necessary to login as some Dockerfile's base images are in Elastic's repos
+  echo "--- logging in in via credentials found in $vault_secret_path"
+  container_registry_login $vault_secret_path $docker_login_username
 
-build_image $dockerfile_path $build_only $include_sub_directories
+  build_image $dockerfile_path $build_only $include_sub_directories $drivah_debug
+}
+
+run
+
+
 

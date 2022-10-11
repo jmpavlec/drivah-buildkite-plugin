@@ -17,7 +17,7 @@ configuration:
     vault_secret_path:
       type: string
       description: The vault path to get the secrets for the docker registry login
-    pre_build_steps:
+    pre_build_commands:
       type: ['string', 'array']
       description: Commands to execute before the build takes places
     build_only:
@@ -27,4 +27,8 @@ configuration:
       type: boolean
       default: false
       description: Build all combinations of Dockerfile and drivah.toml from the `dockerfile_path` dir and below.
+    drivah_debug:
+      type: boolean
+      default: false
+      description: Toggle on debug for the drivah build
   required: ['dockerfile_path', 'docker_login_username', 'vault_secret_path']

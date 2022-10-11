@@ -1,7 +1,7 @@
 # drivah-buildkite-plugin
 [![GitHub Release](https://img.shields.io/github/release/jmpavlec/drivah-buildkite-plugin.svg)](https://github.com/jmpavlec/drivah-buildkite-plugin/releases)
 
-Buildkite plugin to wrap around [drivah](https://drivah.io/) for building, pushing, and tagging docker images
+Buildkite plugin to wrap around [drivah](https://github.com/elastic/drivah) for building, pushing, and tagging docker images
 
 ## Using the plugin
 
@@ -12,6 +12,9 @@ steps:
           dockerfile_path: cloud-ui
           docker_login_username: cloud-ci
           vault_secret_path: secret/ci/elastic-cloud/docker-registry
+          pre_build_commands:
+            - "echo testing"
+            - "echo testing2"
     # Specifying the agent isn't strictly necessary, but you will need an agent image with drivah installed
     agents:
       image: docker.elastic.co/ci-agent-images/drivah:0.16.0
@@ -19,7 +22,17 @@ steps:
       memory: 4G
 ```
 
-Refer to https://github.com/elastic/drivah/releases for the agent image version
+Refer to [drivah releases](https://github.com/elastic/drivah/releases) for the agent image version.
+
+### Plugin parameters
+Refer to the [plugin.yml](plugin.yml) for all available parameters
+
+Note: The `dockerfile_path` path should point at the directory that has the `Dockerfile` and the `drivah.toml`. Refer to
+the [drivah documentation](https://drivah.elastic.dev/image_configuration_file.html) for more information about the
+image configuration file(s).
+
+`docker_login_username` and `vault_secret_path` will likely vary based on the repository you are running the Buildkite 
+ci pipelines from.
 
 
 ## Developing the plugin
@@ -55,7 +68,6 @@ steps:
           vault_secret_path: secret/ci/elastic-cloud/docker-registry
     env:
       BUILDKITE_PLUGINS_ALWAYS_CLONE_FRESH: "true"
-    # Specifying the agent isn't strictly necessary, but you will need an agent image with drivah installed
     agents:
       image: docker.elastic.co/ci-agent-images/drivah:0.16.0
       ephemeralStorage: 10G
